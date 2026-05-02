@@ -1083,13 +1083,11 @@ function closeAdminModal() {
   document.getElementById('admin-modal').classList.remove('open');
 }
 
-function handleAdminUpload() {
-  const pass = document.getElementById('admin-password').value;
-  const day  = parseInt(document.getElementById('admin-day').value);
-  const file = document.getElementById('admin-file').files[0];
+async function handleAdminUpload() {
+  const pass  = document.getElementById('admin-password').value;
+  const day   = parseInt(document.getElementById('admin-day').value);
+  const file  = document.getElementById('admin-file').files[0];
   const errEl = document.getElementById('modal-error');
-
-  if (pass !== ADMIN_PASS) { errEl.style.display = 'block'; return; }
   errEl.style.display = 'none';
 
   if (!file) { alert('Por favor selecciona un archivo 🌸'); return; }
@@ -1099,29 +1097,47 @@ function handleAdminUpload() {
   if (isVideo && !isVideoUnlocked()) {
     alert('El video se puede subir a partir del 15 de mayo 💕'); return;
   }
-
   if (!isVideo && (day < 1 || day > 15 || isNaN(day))) {
     alert('Ingresa un día válido del 1 al 15 🌸'); return;
   }
-
   if (!isVideo && !isDayUnlocked(day)) {
     alert(`El día ${day} todavía no se ha desbloqueado 💕`); return;
   }
 
+  // Convierte a base64
   const reader = new FileReader();
-  reader.onload = function(e) {
-    if (isVideo) {
-      saveVideo(e.target.result);
-    } else {
-      savePhoto(day, e.target.result);
+  reader.onload = async function(e) {
+    const base64 = e.target.result;
+
+    // Sube al servidor (Vercel function) — contraseña viaja al backend, nunca expuesta
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pass, imageBase64: base64, day, isVideo })
+    });
+
+    const data = await res.json();
+
+    if (res.status === 401) {
+      errEl.style.display = 'block'; return;
     }
+    if (!res.ok || !data.url) {
+      alert('Hubo un error subiendo el archivo 😢'); return;
+    }
+
+    // Guarda la URL pública de Cloudinary
+    if (isVideo) {
+      saveVideo(data.url);
+    } else {
+      savePhoto(day, data.url);
+    }
+
     closeAdminModal();
     buildGallery();
     showFeedback();
   };
   reader.readAsDataURL(file);
 }
-
 function showFeedback() {
   const fb = document.getElementById('upload-feedback');
   fb.classList.add('show');
