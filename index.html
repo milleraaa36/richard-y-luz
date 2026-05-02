@@ -1130,7 +1130,16 @@ async function handleAdminUpload() {
     }
 
     closeAdminModal();
-    buildGallery();
+    async function loadAndBuild() {
+  try {
+    const res = await fetch('/api/photos');
+    const data = await res.json();
+    Object.entries(data.photos).forEach(([day, url]) => savePhoto(day, url));
+    if (data.video) saveVideo(data.video);
+  } catch(e) { /* usa localStorage si falla */ }
+  buildGallery();   ← buildGallery() se llama desde AQUÍ adentro
+}
+loadAndBuild();
     showFeedback();
   };
   reader.readAsDataURL(file);
