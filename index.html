@@ -973,22 +973,19 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 // GALLERY
 // ══════════════════════════════════════════════════════
 function getStoredPhotos() {
-  try { return JSON.parse(localStorage.getItem('rl_photos') || '{}'); }
+  try { return JSON.parse(localStorage.getItem('rl_photo_urls') || '{}'); }
   catch { return {}; }
 }
-
-function savePhoto(day, dataUrl) {
+function savePhoto(day, url) {
   const photos = getStoredPhotos();
-  photos[day] = dataUrl;
-  localStorage.setItem('rl_photos', JSON.stringify(photos));
+  photos[day] = url;
+  localStorage.setItem('rl_photo_urls', JSON.stringify(photos));
 }
-
 function getVideo() {
-  return localStorage.getItem('rl_video') || null;
+  return localStorage.getItem('rl_video_url') || null;
 }
-
-function saveVideo(dataUrl) {
-  localStorage.setItem('rl_video', dataUrl);
+function saveVideo(url) {
+  localStorage.setItem('rl_video_url', url);
 }
 
 function isDayUnlocked(day) {
