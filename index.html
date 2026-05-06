@@ -293,6 +293,11 @@
 </audio>
 
 <script>
+  document.addEventListener('click', function startMusic() {
+  var m = document.getElementById('bg-music');
+  if (m && m.paused) { m.volume = 0.4; m.play(); }
+  document.removeEventListener('click', startMusic);
+}, { once: true });
 var WEDDING_DATE  = new Date('2026-05-15T12:00:00');
 var GALLERY_START = new Date('2026-05-01T00:00:00');
 
